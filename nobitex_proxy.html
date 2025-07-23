@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>قیمت‌های لحظه‌ای نوبیتکس</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      text-align: center;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      margin: 2rem auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 1rem;
+    }
+    th {
+      background-color: #eee;
+    }
+    .updated {
+      margin-top: 1rem;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>قیمت‌های لحظه‌ای نوبیتکس</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>بازار</th>
+        <th>قیمت آخرین معامله (تومان)</th>
+        <th>بیشترین قیمت ۲۴ ساعت</th>
+        <th>کمترین قیمت ۲۴ ساعت</th>
+      </tr>
+    </thead>
+    <tbody id="prices">
+      <tr><td colspan="4">در حال دریافت داده...</td></tr>
+    </tbody>
+  </table>
+  <div class="updated" id="updated-time"></div>
+
+  <script>
+    const proxy = "https://corsproxy.io/?";
+    const nobitexURL = proxy + encodeURIComponent("https://api.nobitex.ir/market/stats");
+
+    async function fetchPrices() {
+      try {
+        const response = await fetch(nobitexURL);
+        const data = await response.json();
+        const markets = ["btc-irt", "eth-irt", "xrp-irt", "doge-irt", "ada-irt"];
+        const tbody = document.getElementById("prices");
+        tbody.innerHTML = "";
+
+        markets.forEach(market => {
+          const info = data.stats[market];
+          const row = `<tr>
+            <td>${market.toUpperCase()}</td>
+            <td>${(+info.latest).toLocaleString('fa-IR')}</td>
+            <td>${(+info.high).toLocaleString('fa-IR')}</td>
+            <td>${(+info.low).toLocaleString('fa-IR')}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+
+        const now = new Date();
+        document.getElementById("updated-time").innerText = "آخرین بروزرسانی: " + now.toLocaleTimeString('fa-IR');
+      } catch (err) {
+        console.error("خطا:", err);
+        document.getElementById("prices").innerHTML = "<tr><td colspan='4'>خطا در دریافت اطلاعات</td></tr>";
+      }
+    }
+
+    fetchPrices();
+    setInterval(fetchPrices, 60000); // هر ۱ دقیقه
+  </script>
+</body>
+</html>
